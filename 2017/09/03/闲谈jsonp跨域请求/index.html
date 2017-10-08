@@ -18,11 +18,11 @@
     <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.css">
     <title>
         
-        Tags｜Chylink&#39;s blog
+        闲谈jquery中jsonp跨域请求｜Chylink&#39;s blog
         
     </title>
 
-    <link rel="canonical" href="http://Chylink.github.io/Tags/">
+    <link rel="canonical" href="http://Chylink.github.io/2017/09/03/闲谈jsonp跨域请求/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -43,7 +43,7 @@
 <!-- hack iOS CSS :active style -->
 <body ontouchstart="" class="animated fadeIn">
 <!-- Navigation -->
-<nav class="navbar navbar-default navbar-custom navbar-fixed-top " id="nav-top" data-ispost = "false" data-istags="false
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top " id="nav-top" data-ispost = "true" data-istags="false
 " data-ishome = "false" >
     <div class="container-fluid">
         <!-- Brand and toggle get grouped for better mobile display -->
@@ -123,153 +123,169 @@
 </script>
 
 <!-- Main Content -->
+
+<!--only post-->
+
+
+<img class="wechat-title-img"
+     src="http://ox35m9xsn.bkt.clouddn.com/bg.jpg">
+
+
 <style>
-    .intro-header .site-heading {
-        margin: 50px;
-    }
     
     header.intro-header {
         background-image: url('http://ox35m9xsn.bkt.clouddn.com/bg.jpg')
     }
+
     
 </style>
 
-<!-- Page Header -->
 <header class="intro-header">
     <div class="container">
         <div class="row">
-            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1 ">
-                <div class="site-heading text-center">
-                    <h1>Tags</h1>
-                    <span class="subheading"></span>
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1 text-center">
+                <div class="post-heading">
+                    <h1>闲谈jquery中jsonp跨域请求</h1>
+                    
+                    <span class="meta">
+                         作者 Chylink
+                        <span>
+                          日期 2017-09-03
+                         </span>
+                    </span>
+                    <div class="tags text-center">
+                        
+                        <a class="tag" href="/tags/#js"
+                           title="js">js</a>
+                        
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+    <div class="post-title-haojen">
+        <span>
+            闲谈jquery中jsonp跨域请求
+        </span>
     </div>
 </header>
 
-<!-- Main Content -->
-<div class="container">
-    <div class="row">
-        <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-            <!-- 标签云 -->
-            <div id='tag_cloud' class="tags">
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="col-lg-8 col-lg-offset-1 col-sm-9 post-container">
+                <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>JSON数据是一种能很方便通过js解析的结构化数据。如果获取的数据文件存放在远程服务器上(域名不同,也就是跨域数据),则需要使用jsonp类型，使用这种类型的话，会创建一个查询字符串参数 callback=? ，这个参数会加在请求的URL后面。<strong>服务器端应当在JSON数据前加上回调函数名，以便完成一个有效的JSONP请求。</strong> 如果要指定回调函数的参数名来取代默认的callback，可以通过设置$.ajax()的jsonp参数。</p>
+<p>其实jquery跨域的原理是通过外链  <code>&lt;script&gt;</code> 来实现的,然后在通过回调函数加上回调函数的参数来实现真正的跨域。</p>
+<p>Jquery 在每次跨域发送请求时都会有callback这个参数，其实这个参数的值就是回调函数名称， <strong>所以，服务器端在发送json数据时，应该把这个参数放到前面，</strong> 这个参数的值往往是随机生成的，如：jsonp1294734708682，同时也可以通过 $.ajax 方法设置 callback 方法的名称。明白了原理后，服务器端应该这样发送数据：</p>
+ <pre><code>string message = "jsonp1294734708682({\"userid\":0,\"username\":\"null\"})";</code></pre>
+
+<p>这样，json 数据 {\”userid\”:0,\”username\”:\”null\”} 就作为了 jsonp1294734708682 回调函数的一个参数。</p>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><pre><code>$.ajax({
+    url: 'xxxx',
+    dataType: "jsonp",
+    jsonp: "callbackparam",//传递给请求处理程序或页面的，用以获得jsonp回调函数名的参数名(默认为:callback)
+    jsonpCallback:"success_jsonpCallback",//自定义的jsonp回调函数名称，默认为jQuery自动生成的随机函数名
+    success: function (data) {
+        $.each(data.success, function (i, n) {
+            $("#msg").append( n.title);
+        });
+    }
+});</code></pre>
+
+<p>服务器需要这样返回数据示例:</p>
+<pre><code><%@ webhandler="" language="C#" class="ajax" %="">
+using System;
+ using System.Web;
+public class ajax : IHttpHandler {    
+   public void ProcessRequest (HttpContext context) {
+          context.Response.ContentType = "text/plain";
+         string callbackFunName = context.Request["callbackparam"];
+         context.Response.Write(success_jsonpCallback + "([ { name:\"John\"} ] )");
+     }
+       public bool IsReusable {
+         get {             return false;       
+           }
+     }
+
+ }</%@></code></pre>
+
+<p> <img src="http://pic002.cnblogs.com/images/2011/75158/2011100917363685.gif" alt="Chylink"></p>
+<p>  ajax jsonp与普通的ajax请求的主要区别在于——请求响应结果的处理。如上面代码所示的响应结果为：<br>  success_jsonpCallback([ { name:”John”} ] );</p>
+<p>  其实就是，调用jsonp回调函数success_jsonpCallback,并将要响应的字符串或json传入此方法(作为参数值)，<br>  其底层的实现，大概的猜想应该是：<br>    success_jsonpCallback([ { name:”John”} ] );<br>  function success_jsonpCallback(data)<br>  {<br>        success(data);<br>  }</p>
+
+                <hr>
                 
-                <a href="#js" title="js" rel="4">js</a>
+
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2017/09/09/Vue2.0内部指令-上/" data-toggle="tooltip" data-placement="top"
+                           title="Vue2.0 内部指令（上）">&larr; Previous Post</a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2017/08/30/about me/" data-toggle="tooltip" data-placement="top"
+                           title="Welcome">Next Post &rarr;</a>
+                    </li>
+                    
+                </ul>
+
                 
-                <a href="#vue" title="vue" rel="3">vue</a>
+
                 
-                <a href="#life" title="life" rel="1">life</a>
+
+
+                <!--加入新的评论系统-->
                 
             </div>
 
-            <!-- 标签列表 -->
-            
-            <div class="one-tag-list">
-                <span class="fa fa-tag listing-seperator" id="js">
-                    <span class="tag-text">js</span>
-                </span>
-                
-                <div class="post-preview">
-                    <a href="/2017/09/09/Vue2.0内部指令-上/">
-                        <h2 class="post-title">
-                            Vue2.0 内部指令（上）
-                        </h2>
-                        
-                    </a>
+            <div class="hidden-xs col-sm-3 toc-col">
+                <div class="toc-wrap">
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#介绍"><span class="toc-text">介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实例"><span class="toc-text">实例</span></a></li></ol>
                 </div>
-                <hr>
-                
-                <div class="post-preview">
-                    <a href="/2017/09/03/闲谈jsonp跨域请求/">
-                        <h2 class="post-title">
-                            闲谈jquery中jsonp跨域请求
-                        </h2>
-                        
-                    </a>
-                </div>
-                <hr>
-                
-                <div class="post-preview">
-                    <a href="/2017/09/10/Vue2.0内部指令-中/">
-                        <h2 class="post-title">
-                            Vue2.0内部指令（中）
-                        </h2>
-                        
-                    </a>
-                </div>
-                <hr>
-                
-                <div class="post-preview">
-                    <a href="/2017/09/11/Vue2.0内部指令-下/">
-                        <h2 class="post-title">
-                            Vue2.0内部指令（下）
-                        </h2>
-                        
-                    </a>
-                </div>
-                <hr>
-                
             </div>
-            
-            <div class="one-tag-list">
-                <span class="fa fa-tag listing-seperator" id="vue">
-                    <span class="tag-text">vue</span>
-                </span>
-                
-                <div class="post-preview">
-                    <a href="/2017/09/09/Vue2.0内部指令-上/">
-                        <h2 class="post-title">
-                            Vue2.0 内部指令（上）
-                        </h2>
-                        
-                    </a>
-                </div>
-                <hr>
-                
-                <div class="post-preview">
-                    <a href="/2017/09/10/Vue2.0内部指令-中/">
-                        <h2 class="post-title">
-                            Vue2.0内部指令（中）
-                        </h2>
-                        
-                    </a>
-                </div>
-                <hr>
-                
-                <div class="post-preview">
-                    <a href="/2017/09/11/Vue2.0内部指令-下/">
-                        <h2 class="post-title">
-                            Vue2.0内部指令（下）
-                        </h2>
-                        
-                    </a>
-                </div>
-                <hr>
-                
-            </div>
-            
-            <div class="one-tag-list">
-                <span class="fa fa-tag listing-seperator" id="life">
-                    <span class="tag-text">life</span>
-                </span>
-                
-                <div class="post-preview">
-                    <a href="/2017/08/30/about me/">
-                        <h2 class="post-title">
-                            Welcome
-                        </h2>
-                        
-                    </a>
-                </div>
-                <hr>
-                
-            </div>
-            
-
         </div>
+
+        <div class="row">
+            <!-- Sidebar Container -->
+
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5 class="text-center">
+                        <a href="/tags/">FEATURED TAGS</a>
+                    </h5>
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#js"
+                           title="js">js</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+            </div>
+        </div>
+
     </div>
-</div>
+</article>
+
+
+
+
+
+
 
 <!-- Footer -->
 <!-- Footer -->
